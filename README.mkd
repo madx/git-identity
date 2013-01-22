@@ -1,0 +1,30 @@
+Install
+=======
+
+    # ln -s git-identity ~/bin/git-identity
+    # chmod +x /usr/lib/git-core/git-identity
+    $ git config --global identity.default.name "user"
+    $ git config --global identity.default.email "user@example.org"
+    $ git config --global user.identity default
+
+Usage
+=====
+
+Print the current identity:
+
+    $ git identity
+    Current identity: [default] user [user@example.org]
+
+Change identity:
+
+    $ git identity user2
+    Using identity user2: user2 [user2@example.org]
+
+Adding an identity:
+
+    $ git config --global identity.user3.name user3
+    $ git config --global identity.user3.email user3@example.org
+
+Deleting a identity:
+
+    $ git config --global --remove-identity identity.user3

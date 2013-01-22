@@ -1,0 +1,56 @@
+#!/bin/bash
+
+. /usr/lib/git-core/git-sh-setup
+
+lookup () {
+  local identity=$1
+  local key=$2
+
+  git config -z identity.$identity.$key
+}
+
+format_identity () {
+  local identity=$1
+
+  echo "[$identity] $(lookup "$identity" name) <$(lookup "$identity" email)>"
+}
+
+use_identity () {
+  local identity=$1
+  local name="$(lookup $identity name)"
+  local email="$(lookup $identity email)"
+
+  echo "Using identity: $(format_identity "$identity")"
+  git config user.identity "$identity"
+  git config user.name "$name"
+  git config user.email "$email"
+}
+
+list_identities () {
+  local identities="$(git config --get-regexp ^identity\. | cut -d. -f2 | sort -u)"
+
+  echo "Available identities:"
+  for identity in $identities; do
+    format_identity "$identity"
+  done
+}
+
+print_current_identity () {
+  local identity="$(git config user.identity)"
+
+  echo "Current identity: $(format_identity "$identity")"
+}
+
+IDENTITY="$1"
+
+case $IDENTITY in
+  "")
+    print_current_identity
+    ;;
+  -l|--list)
+    list_identities
+    ;;
+  *)
+    use_identity $IDENTITY
+    ;;
+esac
