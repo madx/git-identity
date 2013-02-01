@@ -45,6 +45,6 @@ Adding an identity:
 
     $ git identity --define <identity name> <user name> <user email>
 
-Deleting a identity:
+Deleting an identity:
 
     $ git identity --remove <identity name>
