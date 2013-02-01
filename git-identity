@@ -41,6 +41,16 @@ print_current_identity () {
   echo "Current identity: $(format_identity "$identity")"
 }
 
+define_identity () {
+  local identity="$1"
+  local name="$2"
+  local email="$3"
+
+  git config --global identity."$identity".name "$name"
+  git config --global identity."$identity".email "$email"
+  echo "Created $(format_identity "$identity")"
+}
+
 IDENTITY="$1"
 
 case $IDENTITY in
@@ -52,5 +62,12 @@ case $IDENTITY in
     ;;
   *)
     use_identity $IDENTITY
+  -d|--define)
+    shift
+    if [ $# -lt 3 ]; then
+      usage
+      exit 1
+    fi
+    define_identity $@
     ;;
 esac
