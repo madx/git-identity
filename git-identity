@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. /usr/lib/git-core/git-sh-setup
+. $(git --exec-path)/git-sh-setup
 
 lookup () {
   local identity=$1
