@@ -51,23 +51,38 @@ define_identity () {
   echo "Created $(format_identity "$identity")"
 }
 
+remove_identity () {
+  local identity="$1"
+
+  git config --global --remove-section identity."$identity"
+  echo "Removed $(format_identity "$identity")"
+}
+
 IDENTITY="$1"
 
+check_arguments () {
+  if [ $1 -lt $2 ]; then
+    usage
+    exit 1
+  fi
+}
+
 case $IDENTITY in
-  "")
-    print_current_identity
-    ;;
-  -l|--list)
-    list_identities
-    ;;
-  *)
-    use_identity $IDENTITY
+  "") print_current_identity ;;
+
+  -l|--list) list_identities ;;
+
   -d|--define)
     shift
-    if [ $# -lt 3 ]; then
-      usage
-      exit 1
-    fi
+    check_arguments $# 3
     define_identity $@
     ;;
+
+  -r|--remove)
+    shift
+    check_arguments $# 1
+    remove_identity $@
+    ;;
+
+  *) use_identity $IDENTITY ;;
 esac
