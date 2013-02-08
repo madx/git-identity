@@ -8,14 +8,14 @@ USAGE="$USAGE | <identity>"
 . $(git --exec-path)/git-sh-setup
 
 lookup () {
-  local identity=$1
-  local key=$2
+  local identity="$1"
+  local key="$2"
 
-  git config -z identity.$identity.$key
+  git config -z "identity.$identity.$key"
 }
 
 format_identity () {
-  local identity=$1
+  local identity="$1"
 
   echo "[$identity] $(lookup "$identity" name) <$(lookup "$identity" email)>"
 }
@@ -80,13 +80,13 @@ case $IDENTITY in
   -d|--define)
     shift
     check_arguments $# 3
-    define_identity $@
+    define_identity "$1" "$2" "$3"
     ;;
 
   -r|--remove)
     shift
     check_arguments $# 1
-    remove_identity $@
+    remove_identity "$1"
     ;;
 
   *) use_identity $IDENTITY ;;
