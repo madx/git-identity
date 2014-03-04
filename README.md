@@ -48,3 +48,8 @@ Adding an identity:
 Deleting an identity:
 
     $ git identity --remove <identity name>
+
+Printing the raw identity (for use in scripts)
+
+    $ git identity --print
+    $ git identity --print <identity name>

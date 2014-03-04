@@ -17,7 +17,13 @@ lookup () {
 format_identity () {
   local identity="$1"
 
-  echo "[$identity] $(lookup "$identity" name) <$(lookup "$identity" email)>"
+  echo "[$identity] $(format_raw_identity "$identity")>"
+}
+
+format_raw_identity () {
+  local identity="$1"
+
+  echo "$(lookup "$identity" name) <$(lookup "$identity" email)>"
 }
 
 use_identity () {
@@ -38,6 +44,16 @@ list_identities () {
   for identity in $identities; do
     format_identity "$identity"
   done
+}
+
+print_raw_identity () {
+  local identity="$1"
+
+  if [ "x$identity" = "x" ]; then
+    identity="$(git config user.identity)"
+  fi
+
+  echo "$(format_raw_identity "$identity")"
 }
 
 print_current_identity () {
@@ -87,6 +103,11 @@ case $IDENTITY in
     shift
     check_arguments $# 1
     remove_identity "$1"
+    ;;
+
+  -p|--print)
+    shift
+    print_raw_identity "$1"
     ;;
 
   *) use_identity $IDENTITY ;;
