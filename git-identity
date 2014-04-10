@@ -17,7 +17,7 @@ lookup () {
 format_identity () {
   local identity="$1"
 
-  echo "[$identity] $(format_raw_identity "$identity")>"
+  echo "[$identity] $(format_raw_identity "$identity")"
 }
 
 format_raw_identity () {
