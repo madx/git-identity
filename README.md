@@ -21,6 +21,9 @@ more information):
 
     $ git identity --define default Me me@example.org
 
+To get bash completion, just source the `git-identity.bash-completion` file
+in your initialization scripts, such as `.bashrc`.
+
 Usage
 -----
 
@@ -53,3 +56,4 @@ Printing the raw identity (for use in scripts)
 
     $ git identity --print
     $ git identity --print <identity name>
+
