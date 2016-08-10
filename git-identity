@@ -3,6 +3,7 @@
 USAGE="[-d|--define] identity name email"
 USAGE="$USAGE | [-r|--remove] identity"
 USAGE="$USAGE | [-l|--list]"
+USAGE="$USAGE | [-R|--list-raw]"
 USAGE="$USAGE | <identity>"
 
 . $(git --exec-path)/git-sh-setup
@@ -37,8 +38,12 @@ use_identity () {
   git config user.email "$email"
 }
 
+list_raw_identities () {
+  git config --get-regexp '^identity\.' | cut -d"." -f2 | sort -u
+}
+
 list_identities () {
-  local identities="$(git config --get-regexp ^identity\. | cut -d. -f2 | sort -u)"
+  local identities="$(list_raw_identities)"
 
   echo "Available identities:"
   for identity in $identities; do
@@ -92,6 +97,8 @@ case $IDENTITY in
   "") print_current_identity ;;
 
   -l|--list) list_identities ;;
+
+  -R|--list-raw) list_raw_identities ;;
 
   -d|--define)
     shift
