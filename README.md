@@ -44,6 +44,12 @@ Listing identities:
     [default] user <user@example.org>
     [default2] user2 <user2@example.org>
 
+Listing raw identities:
+
+    $ git identity --list-raw
+    default
+    default2
+
 Adding an identity:
 
     $ git identity --define <identity name> <user name> <user email>
