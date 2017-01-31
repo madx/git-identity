@@ -80,9 +80,10 @@ define_identity () {
 
 remove_identity () {
   local identity="$1"
+  local formated_identity="$(format_identity "$identity")"
 
   git config --global --remove-section identity."$identity"
-  echo "Removed $(format_identity "$identity")"
+  echo "Removed $formated_identity"
 }
 
 IDENTITY="$1"
