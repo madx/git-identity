@@ -29,9 +29,9 @@ format_raw_identity () {
 }
 
 use_identity () {
-  local identity=$1
-  local name="$(lookup $identity name)"
-  local email="$(lookup $identity email)"
+  local identity="$1"
+  local name="$(lookup "$identity" name)"
+  local email="$(lookup "$identity" email)"
 
   echo "Using identity: $(format_identity "$identity")"
   git config user.identity "$identity"
@@ -119,5 +119,5 @@ case $IDENTITY in
     print_raw_identity "$1"
     ;;
 
-  *) use_identity $IDENTITY ;;
+  *) use_identity "$IDENTITY" ;;
 esac
