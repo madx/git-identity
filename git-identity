@@ -1,6 +1,7 @@
 #!/bin/bash
 
 USAGE="[-d|--define] <identity> <name> <email>"
+USAGE="$USAGE | [-p|--print] <identity>"
 USAGE="$USAGE | [-r|--remove] <identity>"
 USAGE="$USAGE | [-l|--list]"
 USAGE="$USAGE | [-R|--list-raw]"
