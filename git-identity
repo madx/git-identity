@@ -1,7 +1,8 @@
 #!/bin/bash
 
-USAGE="[-d|--define] identity name email"
-USAGE="$USAGE | [-r|--remove] identity"
+USAGE="[-d|--define] <identity> <name> <email>"
+USAGE="$USAGE | [-p|--print] <identity>"
+USAGE="$USAGE | [-r|--remove] <identity>"
 USAGE="$USAGE | [-l|--list]"
 USAGE="$USAGE | [-R|--list-raw]"
 USAGE="$USAGE | <identity>"
@@ -28,9 +29,9 @@ format_raw_identity () {
 }
 
 use_identity () {
-  local identity=$1
-  local name="$(lookup $identity name)"
-  local email="$(lookup $identity email)"
+  local identity="$1"
+  local name="$(lookup "$identity" name)"
+  local email="$(lookup "$identity" email)"
 
   echo "Using identity: $(format_identity "$identity")"
   git config user.identity "$identity"
@@ -79,9 +80,10 @@ define_identity () {
 
 remove_identity () {
   local identity="$1"
+  local formated_identity="$(format_identity "$identity")"
 
   git config --global --remove-section identity."$identity"
-  echo "Removed $(format_identity "$identity")"
+  echo "Removed $formated_identity"
 }
 
 IDENTITY="$1"
@@ -117,5 +119,5 @@ case $IDENTITY in
     print_raw_identity "$1"
     ;;
 
-  *) use_identity $IDENTITY ;;
+  *) use_identity "$IDENTITY" ;;
 esac
