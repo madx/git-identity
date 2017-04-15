@@ -1,4 +1,4 @@
-# vim: ft=sh: #
+# vim: ft=sh:
 _git_identity () {
 	# Needs the bash-completion for git proper
 	[ -n "$__git_whitespacelist" ] || return;
