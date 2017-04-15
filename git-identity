@@ -13,7 +13,7 @@ lookup () {
   local identity="$1"
   local key="$2"
 
-  git config -z "identity.$identity.$key"
+  git config "identity.$identity.$key"
 }
 
 format_identity () {
