@@ -1,0 +1,15 @@
+#compdef git-identity
+local -a options identities
+identities=( $(git identity --list-raw) )
+options=(
+'-h:Show help'
+{-l,--list}':List all identities'
+{-R,--list-raw}':List only the names of all identities'
+{-d,--define}':Define a new identity'
+{-r,--remove}':Remove an identity'
+{-p,--print}':Print an identity'
+)
+
+if (( CURRENT < 3 )); then
+	_alternative "ids:Identities:($identities)" "opts:Options:{_describe 'Identities' options}"
+fi

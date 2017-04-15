@@ -24,6 +24,8 @@ more information):
 To get bash completion, just source the `git-identity.bash-completion` file
 in your initialization scripts, such as `.bashrc`.
 
+To get zsh completion, move the `git-identity.zsh-completion` file to a location present in your `$FPATH`, renaming the file to `_git-identity`.
+
 Usage
 -----
 
