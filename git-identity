@@ -120,10 +120,18 @@ remove_identity () {
 define_gpg () {
   local identity="$1"
   local gpgkey="$2"
+  local name="$(lookup "$identity" name)"
   
-  git config --global identity."$identity".signingkey "$gpgkey"
-  git config --global identity."$identity".gpgsign true
-  echo "Added GPG key $gpgkey to $(format_identity "$identity")"
+  if [ "$name" != "" -a "$name" != " " ]
+  then
+    git config --global identity."$identity".signingkey "$gpgkey"
+    git config --global identity."$identity".gpgsign true
+    echo "Added GPG key $gpgkey to $(format_identity "$identity")"
+  
+    use_identity "$identity"
+  else
+    echo "Error: could not define GPG key for undefined identity '$identity'"
+  fi
 }
 
 IDENTITY="$1"
