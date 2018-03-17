@@ -5,6 +5,7 @@ USAGE="$USAGE | [-p|--print] <identity>"
 USAGE="$USAGE | [-r|--remove] <identity>"
 USAGE="$USAGE | [-l|--list]"
 USAGE="$USAGE | [-R|--list-raw]"
+USAGE="$USAGE | [--define-gpg] <gpgkeyid>"
 USAGE="$USAGE | <identity>"
 
 . $(git --exec-path)/git-sh-setup
@@ -24,19 +25,37 @@ format_identity () {
 
 format_raw_identity () {
   local identity="$1"
-
-  echo "$(lookup "$identity" name) <$(lookup "$identity" email)>"
+  local gpgkey="$(lookup $identity signingkey)"
+  
+  local output="$(lookup "$identity" name) <$(lookup "$identity" email)>"
+  if [ "$gpgkey" != "" -a "$gpgkey" != " " ];
+  then
+    output="$output (GPG key: $gpgkey)"
+  fi
+  
+  echo "$output"
 }
 
 use_identity () {
   local identity="$1"
   local name="$(lookup "$identity" name)"
   local email="$(lookup "$identity" email)"
+  local gpgkey="$(lookup "$identity" signingkey)"
 
   echo "Using identity: $(format_identity "$identity")"
   git config user.identity "$identity"
   git config user.name "$name"
   git config user.email "$email"
+  
+  # Enable or disable GPG key usage
+  if [ "$gpgkey" != "" -a "$gpgkey" != " " ];
+  then
+    git config user.signingkey "$gpgkey"
+    git config commit.gpgsign true
+  else
+    git config --unset user.signingkey
+    git config --unset commit.gpgsign
+  fi
 }
 
 list_raw_identities () {
@@ -86,6 +105,15 @@ remove_identity () {
   echo "Removed $formated_identity"
 }
 
+define_gpg () {
+  local identity="$1"
+  local gpgkey="$2"
+  
+  git config --global identity."$identity".signingkey "$gpgkey"
+  git config --global identity."$identity".gpgsign true
+  echo "Added GPG key $gpgkey to $(format_identity "$identity")"
+}
+
 IDENTITY="$1"
 
 check_arguments () {
@@ -108,6 +136,12 @@ case $IDENTITY in
     define_identity "$1" "$2" "$3"
     ;;
 
+  --define-gpg)
+    shift
+	check_arguments $# 2
+	define_gpg "$1" "$2"
+	;;
+	
   -r|--remove)
     shift
     check_arguments $# 1
@@ -118,6 +152,6 @@ case $IDENTITY in
     shift
     print_raw_identity "$1"
     ;;
-
+  
   *) use_identity "$IDENTITY" ;;
 esac
