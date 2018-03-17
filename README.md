@@ -16,8 +16,9 @@ will pick it up and make it available as `git identity`.
 
     $ ln -s git-identity ~/bin/git-identity
 
-Then you may setup a default identity with the following command (see Usage for
-more information):
+Under Windows, go to System > Advanced System Parameters > Environment Variable. Find the "Path" entry under *system variables* and add the path to where you downloaded `git-identity`.
+
+Then you may setup a default identity with the following command (see Usage for more information):
 
     $ git identity --define default Me me@example.org
 
@@ -29,6 +30,15 @@ To get zsh completion, move the `git-identity.zsh-completion` file to a location
 Usage
 -----
 
+Add an identity:
+
+    $ git identity --define <identity name> <user name> <user email>
+
+Add a GPG key to the identity (see GPG specific information below)
+
+	$ git identity --define-gpg <identity name> <gpgkeyid>
+	Added GPG key DA221397A6FF5EZZ to [default] user <user@example.org> (GPG key: DA221397A6FF5EZZ)
+
 Print the current identity:
 
     $ git identity
@@ -39,7 +49,7 @@ Change identity:
     $ git identity user2
     Using identity: [default2] user2 <user2@example.org>
 
-Listing identities:
+List all identities:
 
     $ git identity --list
     Available identities:
@@ -52,10 +62,6 @@ Listing raw identities:
     default
     default2
 
-Adding an identity:
-
-    $ git identity --define <identity name> <user name> <user email>
-
 Deleting an identity:
 
     $ git identity --remove <identity name>
@@ -65,3 +71,7 @@ Printing the raw identity (for use in scripts)
     $ git identity --print
     $ git identity --print <identity name>
 
+Setting up GPG
+--------------
+
+More information about how to use GPG with `git-identity` may be found in [GPG_SETUP.md](GPG_SETUP.md)
