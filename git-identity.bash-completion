@@ -7,7 +7,7 @@ _git_identity () {
 	# git identity -h | tr '|' '\n'|grep -oE '\-.+'|cut -f1 -d']' |tr '\n' ' '
 	# The grep regex is a bit hack-y, but this is just over-optimizing anyway
 	# Whenever you add more commands just come add them here
-	local commands="-d --define -r --remove -l --list -R --list-raw -p --print"
+	local commands="-d --define --define-gpg -r --remove -l --list -R --list-raw -p --print"
 
 	case "$cur" in
 		-*)

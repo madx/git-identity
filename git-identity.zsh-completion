@@ -6,6 +6,7 @@ options=(
 {-l,--list}':List all identities'
 {-R,--list-raw}':List only the names of all identities'
 {-d,--define}':Define a new identity'
+{--define-gpg}':Assign a GPG key with an identity'
 {-r,--remove}':Remove an identity'
 {-p,--print}':Print an identity'
 )
