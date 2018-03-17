@@ -125,7 +125,6 @@ define_gpg () {
   if [ "$name" != "" -a "$name" != " " ]
   then
     git config --global identity."$identity".signingkey "$gpgkey"
-    git config --global identity."$identity".gpgsign true
     echo "Added GPG key $gpgkey to $(format_identity "$identity")"
   
     use_identity "$identity"
