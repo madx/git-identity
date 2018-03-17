@@ -42,19 +42,25 @@ use_identity () {
   local email="$(lookup "$identity" email)"
   local gpgkey="$(lookup "$identity" signingkey)"
 
-  echo "Using identity: $(format_identity "$identity")"
-  git config user.identity "$identity"
-  git config user.name "$name"
-  git config user.email "$email"
-  
-  # Enable or disable GPG key usage
-  if [ "$gpgkey" != "" -a "$gpgkey" != " " ];
+  if [ "$name" != "" -a "$name" != " " ]
   then
-    git config user.signingkey "$gpgkey"
-    git config commit.gpgsign true
+    echo "Using identity: $(format_identity "$identity")"
+    git config user.identity "$identity"
+    git config user.name "$name"
+    git config user.email "$email"
+  
+    # Enable or disable GPG key usage
+    if [ "$gpgkey" != "" -a "$gpgkey" != " " ];
+    then
+      git config user.signingkey "$gpgkey"
+	  git config commit.gpgsign true
+    else
+      git config --unset user.signingkey
+      git config --unset commit.gpgsign
+    fi
   else
-    git config --unset user.signingkey
-    git config --unset commit.gpgsign
+    echo "Identity $identity does not exist. Doing nothing..."
+	echo "$(print_current_identity)"
   fi
 }
 
@@ -84,7 +90,12 @@ print_raw_identity () {
 print_current_identity () {
   local identity="$(git config user.identity)"
 
-  echo "Current identity: $(format_identity "$identity")"
+  if [ "$identity" != "" -a "$identity" != " " ]
+  then
+    echo "Current identity: $(format_identity "$identity")"
+  else
+    echo "Current identity: no identity set"
+  fi
 }
 
 define_identity () {
@@ -95,6 +106,7 @@ define_identity () {
   git config --global identity."$identity".name "$name"
   git config --global identity."$identity".email "$email"
   echo "Created $(format_identity "$identity")"
+  echo "Enter 'git identity $identity' to use it in the current repository."
 }
 
 remove_identity () {
