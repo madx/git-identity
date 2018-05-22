@@ -27,6 +27,10 @@ in your initialization scripts, such as `.bashrc`.
 
 To get zsh completion, move the `git-identity.zsh-completion` file to a location present in your `$FPATH`, renaming the file to `_git-identity`.
 
+You can also use [basher](https://github.com/basherpm/basher) to install git-identity:
+
+    $ basher install madx/git-identity
+
 Usage
 -----
 
