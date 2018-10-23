@@ -1,11 +1,14 @@
 #!/bin/bash
 
-USAGE="[-d|--define] <identity> <name> <email>"
+USAGE="[-d|--define] <identity> <name> <email> [<ssh-file>] [<gpgkeyid>]"
 USAGE="$USAGE | [-p|--print] <identity>"
+USAGE="$USAGE | [-c|--current-settings]"
 USAGE="$USAGE | [-r|--remove] <identity>"
 USAGE="$USAGE | [-l|--list]"
 USAGE="$USAGE | [-R|--list-raw]"
 USAGE="$USAGE | [--define-gpg] <gpgkeyid>"
+USAGE="$USAGE | [--define-ssh] <ssh-file> <ssh-verbosity>"
+USAGE="$USAGE | [-u|--update]"
 USAGE="$USAGE | <identity>"
 
 . $(git --exec-path)/git-sh-setup
@@ -26,11 +29,24 @@ format_identity () {
 format_raw_identity () {
   local identity="$1"
   local gpgkey="$(lookup $identity signingkey)"
+  local sshkey="$(lookup $identity sshkey)"
+  local sshkeyverbosity="$(lookup $identity sshkeyverbosity)"
+
   
   local output="$(lookup "$identity" name) <$(lookup "$identity" email)>"
   if [ "$gpgkey" != "" -a "$gpgkey" != " " ];
   then
     output="$output (GPG key: $gpgkey)"
+  fi
+
+  if [ "$sshkey" != "" -a "$sshkey" != " " ];
+  then
+    local verbosity=""
+    if [ "$sshkeyverbosity" != "" -a "$sshkeyverbosity" != " " ];
+    then
+      verbosity=" with verbosity $sshkeyverbosity"
+    fi
+    output="$output (SSH key: $sshkey$verbosity)"
   fi
   
   echo "$output"
@@ -41,6 +57,8 @@ use_identity () {
   local name="$(lookup "$identity" name)"
   local email="$(lookup "$identity" email)"
   local gpgkey="$(lookup "$identity" signingkey)"
+  local sshkey="$(lookup $identity sshkey)"
+  local sshkeyverbosity="$(lookup $identity sshkeyverbosity)"
 
   if [ "$name" != "" -a "$name" != " " ]
   then
@@ -53,15 +71,49 @@ use_identity () {
     if [ "$gpgkey" != "" -a "$gpgkey" != " " ];
     then
       git config user.signingkey "$gpgkey"
-	  git config commit.gpgsign true
+	    git config commit.gpgsign true
     else
       git config --unset user.signingkey
       git config --unset commit.gpgsign
+    fi
+  
+    # Enable or disable SSH key usage
+    if [ "$sshkey" != "" -a "$sshkey" != " " ];
+    then
+      local verbosity=""
+      case $sshkeyverbosity in
+        1) verbosity="-v " ;;
+        2) verbosity="-vvv " ;;
+        *) verbosity="" ;;
+      esac
+
+      if [[ $sshkey != '/'* ]] && [[ $sshkey != '.'* ]]
+      then
+        sshkey="~/.ssh/$sshkey"
+      fi
+      git config core.sshCommand "ssh $verbosity-i $sshkey"
+    else
+      git config --unset core.sshCommand
     fi
   else
     echo "Identity $identity does not exist. Doing nothing..."
 	echo "$(print_current_identity)"
   fi
+}
+
+update_identity () {
+    local identity="$(git config user.identity)"
+    local prev_settings=$(get_current_settings "$identity" | sed -e 's/^/  /')
+    use_identity "$identity"
+    local curr_settings=$(get_current_settings "$identity" | sed -e 's/^/  /')
+    local diff_string="$(diff --color=always <(echo "$prev_settings") <(echo "$curr_settings"))"
+    if [ "$diff_string" != "" -a "$diff_string" != " " ];
+    then
+      echo "These local setting changed:"
+      echo "$diff_string"
+    else
+      echo "Settings are current. No changes were made."
+    fi
 }
 
 list_raw_identities () {
@@ -98,13 +150,30 @@ print_current_identity () {
   fi
 }
 
+get_current_settings () {
+    git config --local --get-regexp '^(user\.|commit\.gpgsign|core.ssh[cC]ommand)' | sort -u
+}
+
 define_identity () {
   local identity="$1"
   local name="$2"
   local email="$3"
+  local sshkey="$4"
+  local gpgkey="$5"
 
   git config --global identity."$identity".name "$name"
   git config --global identity."$identity".email "$email"
+
+  if [ "$sshkey" != "" -a "$sshkey" != " " ];
+  then
+    define_ssh $identity $sshkey
+  fi
+
+  if [ "$gpgkey" != "" -a "$gpgkey" != " " ];
+  then
+    define_gpg $identity $gpgkey
+  fi
+
   echo "Created $(format_identity "$identity")"
   echo "Enter 'git identity $identity' to use it in the current repository."
 }
@@ -133,6 +202,28 @@ define_gpg () {
   fi
 }
 
+define_ssh () {
+  local identity="$1"
+  local sshkey="$2"
+  local sshkeyverbosity="$3"
+  local name="$(lookup "$identity" name)"
+  
+  if [ "$name" != "" -a "$name" != " " ]
+  then
+    git config --global identity."$identity".sshkey "$sshkey"
+    echo "Added SSH key $sshkey to $(format_identity "$identity")"
+
+    if [ "$sshkeyverbosity" != "" -a "$sshkeyverbosity" != " " ]
+    then
+      git config --global identity."$identity".sshkeyverbosity "$sshkeyverbosity"
+    fi
+  
+    use_identity "$identity"
+  else
+    echo "Error: could not define SSH key for undefined identity '$identity'"
+  fi
+}
+
 IDENTITY="$1"
 
 check_arguments () {
@@ -145,6 +236,8 @@ check_arguments () {
 case $IDENTITY in
   "") print_current_identity ;;
 
+  -c|--current-settings) get_current_settings ;;
+
   -l|--list) list_identities ;;
 
   -R|--list-raw) list_raw_identities ;;
@@ -152,13 +245,19 @@ case $IDENTITY in
   -d|--define)
     shift
     check_arguments $# 3
-    define_identity "$1" "$2" "$3"
+    define_identity "$1" "$2" "$3" "$4" "$5"
     ;;
 
   --define-gpg)
     shift
-	check_arguments $# 2
-	define_gpg "$1" "$2"
+	  check_arguments $# 2
+	  define_gpg "$1" "$2"
+	;;
+
+  --define-ssh)
+    shift
+	  check_arguments $# 2
+	  define_ssh "$1" "$2" "$3"
 	;;
 	
   -r|--remove)
@@ -171,6 +270,8 @@ case $IDENTITY in
     shift
     print_raw_identity "$1"
     ;;
+
+  -u|--update) update_identity "$1" ;;
   
   *) use_identity "$IDENTITY" ;;
 esac

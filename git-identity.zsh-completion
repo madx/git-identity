@@ -9,6 +9,9 @@ options=(
 {--define-gpg}':Assign a GPG key with an identity'
 {-r,--remove}':Remove an identity'
 {-p,--print}':Print an identity'
+{-c,--current-settings}':Print current local settings'
+{-u,--update}':Update local settings based on the current identity'
+{--define-ssh}':Add a ssh key for the identity'
 )
 
 if (( CURRENT < 3 )); then
