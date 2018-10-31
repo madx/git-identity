@@ -11,8 +11,6 @@ USAGE="$USAGE | [--define-ssh] <ssh-file> <ssh-verbosity>"
 USAGE="$USAGE | [-u|--update]"
 USAGE="$USAGE | <identity>"
 
-. $(git --exec-path)/git-sh-setup
-
 lookup () {
   local identity="$1"
   local key="$2"
@@ -232,6 +230,16 @@ check_arguments () {
     exit 1
   fi
 }
+
+# For the some commands, it is ok not being in a git folder
+case $IDENTITY in
+  -l|--list|-R|--list-raw|-d|--define|--define-gpg|--define-ssh|-r|--remove|-p|--print)
+    # To prevent git-sh-setup to error out with  'fatal: not a git repository (or any of the parent directories): .git'
+    NONGIT_OK=1
+
+esac
+SUBDIRECTORY_OK=1
+. $(git --exec-path)/git-sh-setup
 
 case $IDENTITY in
   "") print_current_identity ;;
