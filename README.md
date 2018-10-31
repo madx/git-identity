@@ -92,7 +92,7 @@ Printing the raw identity (for use in scripts)
 
 Priniting the local settings
 
-    $ git identity --current-settings
+    $ git identity --get-settings
     core.sshcommand ssh -i ~/.ssh/id_rsa_user
     user.email user@example.com
     user.identity user
@@ -112,7 +112,7 @@ This sets  `core.sshCommand="ssh -i ~/ssh/ssh-file"` in the local git config whe
 
 ### Creating a new identity 
 
-    ssh-keygen -t rsa -b 4096 -C "yourname@yourdomain" -f ~/.ssh/id_rsa_anotheraccount
+        ssh-keygen -t rsa -b 4096 -C "yourname@yourdomain" -f ~/.ssh/id_rsa_anotheraccount
     ssh-add id_rsa_anotheraccount
 
 ### Debugging a ssh connection problem 
