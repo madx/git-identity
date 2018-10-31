@@ -134,7 +134,18 @@ print_raw_identity () {
     identity="$(git config user.identity)"
   fi
 
+  if [ "$identity" == "" -o "$identity" == " " ]
+  then
+    echo "You need to specify an identity or being in a repository with an identity set"
+  else 
+    local name="$(lookup "$identity" name)"
+    if [ "$name" != "" -a "$name" != " " ]
+    then
   echo "$(format_raw_identity "$identity")"
+    else
+      echo "Identity $identity does not exist."
+    fi
+  fi
 }
 
 print_current_identity () {
