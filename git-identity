@@ -2,7 +2,7 @@
 
 USAGE="[-d|--define] <identity> <name> <email> [<ssh-file>] [<gpgkeyid>]"
 USAGE="$USAGE | [-p|--print] <identity>"
-USAGE="$USAGE | [-c|--current-settings]"
+USAGE="$USAGE | [-s|--get-settings]"
 USAGE="$USAGE | [-r|--remove] <identity>"
 USAGE="$USAGE | [-l|--list]"
 USAGE="$USAGE | [-R|--list-raw]"
@@ -236,7 +236,7 @@ check_arguments () {
 case $IDENTITY in
   "") print_current_identity ;;
 
-  -c|--current-settings) get_current_settings ;;
+  -s|--get-settings) get_current_settings ;;
 
   -l|--list) list_identities ;;
 
