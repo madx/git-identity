@@ -1,15 +1,31 @@
 #!/bin/bash
 
-USAGE="[-d|--define] <identity> <name> <email> [<ssh-file>] [<gpgkeyid>]"
-USAGE="$USAGE | [-p|--print] <identity>"
-USAGE="$USAGE | [-s|--get-settings]"
-USAGE="$USAGE | [-r|--remove] <identity>"
-USAGE="$USAGE | [-l|--list]"
-USAGE="$USAGE | [-R|--list-raw]"
-USAGE="$USAGE | [--define-gpg] <gpgkeyid>"
-USAGE="$USAGE | [--define-ssh] <ssh-file> <ssh-verbosity>"
-USAGE="$USAGE | [-u|--update]"
-USAGE="$USAGE | <identity>"
+USAGE=`cat <<'EOF'
+[-d | --define] <identity> <name> <email> [<ssh-file>] [<gpgkeyid>]
+   or: git identity [-p | --print] [<identity>]
+   or: git identity [-s | --get-settings]
+   or: git identity [-r | --remove] <identity>
+   or: git identity [-l | --list]
+   or: git identity [-R | --list-raw]
+   or: git identity [--define-gpg] <gpgkeyid>
+   or: git identity [--define-ssh] <ssh-file> [<ssh-verbosity>]
+   or: git identity [-u | --update]
+   or: git identity <identity>
+
+Specific git-identity actions:
+   -d, --define          define new identity and optionally specify ssh-file and gpg key
+   -p, --print           print an indenttity or the current one
+   -s, --get-settings    get the current settings that git-identity can changes
+   -r, --remove          remove an identity
+   -l, --list            list all the identities
+   -R, --list-raw        list all identities without details
+   --define-gpg          Add gpg signature to the identity
+   --define-ssh          Add ssh key to an identity. If it does not have a path, assume '~/.ssh'
+                         Verbosity (0,1,2) of the ssh agent can also be specified
+   -u, --update          Refresh the local settings with the global settings of the current identity
+ 
+EOF
+`
 
 lookup () {
   local identity="$1"
@@ -141,7 +157,7 @@ print_raw_identity () {
     local name="$(lookup "$identity" name)"
     if [ "$name" != "" -a "$name" != " " ]
     then
-  echo "$(format_raw_identity "$identity")"
+      echo "$(format_raw_identity "$identity")"
     else
       echo "Identity $identity does not exist."
     fi
