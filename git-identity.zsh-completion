@@ -11,6 +11,7 @@ options=(
 {-p,--print}':Print an identity'
 {-s,--get-settings}':Print current local settings'
 {-u,--update}':Update local settings based on the current identity'
+{-c,--get-shell-command}':Get GIT_SSH_COMMAND for an identiy or current identity'
 {--define-ssh}':Add a ssh key for the identity'
 )
 
