@@ -221,7 +221,11 @@ define_gpg () {
     git config --global identity."$identity".signingkey "$gpgkey"
     echo "Added GPG key $gpgkey to $(format_identity "$identity")"
   
+    local current_identity="$(git config user.identity)"
+    if [ "$current_identity" == "$identity"]
+    then 
     use_identity "$identity"
+    fi
   else
     echo "Error: could not define GPG key for undefined identity '$identity'"
   fi
@@ -243,7 +247,11 @@ define_ssh () {
       git config --global identity."$identity".sshkeyverbosity "$sshkeyverbosity"
     fi
   
+    local current_identity="$(git config user.identity)"
+    if [ "$current_identity" == "$identity"]
+    then 
     use_identity "$identity"
+    fi
   else
     echo "Error: could not define SSH key for undefined identity '$identity'"
   fi
