@@ -102,6 +102,14 @@ Priniting the local settings
     user.identity user
     user.name First Last
 
+Retriving GIT_SSH_COMMAND or running command with that in the environment:
+
+    $ git identity -c my_other_identity
+    GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa_myotheridentity"
+
+    $ git identity -c my_other_identity git clone git@github.com:me/myrepo.git
+    Cloning into 'myrepo'...
+
 Setting up GPG
 --------------
 
