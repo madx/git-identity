@@ -292,7 +292,7 @@ define_ssh () {
     fi
   
     local current_identity="$(git config user.identity)"
-    if [ "$current_identity" == "$identity"]
+    if [ "$current_identity" == "$identity" ]
     then 
       use_identity "$identity"
     fi
