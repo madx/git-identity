@@ -142,7 +142,7 @@ use_identity () {
     if [ -n "$gpgkey" ];
     then
       git config user.signingkey "$gpgkey"
-	    git config commit.gpgsign true
+      git config commit.gpgsign true
     else
       git config --unset user.signingkey
       git config --unset commit.gpgsign
@@ -162,18 +162,18 @@ use_identity () {
 }
 
 update_identity () {
-    local identity="$(git config user.identity)"
-    local prev_settings=$(get_current_settings "$identity" | sed -e 's/^/  /')
-    use_identity "$identity"
-    local curr_settings=$(get_current_settings "$identity" | sed -e 's/^/  /')
-    local diff_string="$(diff --color=always <(echo "$prev_settings") <(echo "$curr_settings"))"
-    if [ -n "$diff_string" ];
-    then
-      echo "These local setting changed:"
-      echo "$diff_string"
-    else
-      echo "Settings are current. No changes were made."
-    fi
+  local identity="$(git config user.identity)"
+  local prev_settings=$(get_current_settings "$identity" | sed -e 's/^/  /')
+  use_identity "$identity"
+  local curr_settings=$(get_current_settings "$identity" | sed -e 's/^/  /')
+  local diff_string="$(diff --color=always <(echo "$prev_settings") <(echo "$curr_settings"))"
+  if [ -n "$diff_string" ];
+  then
+    echo "These local setting changed:"
+    echo "$diff_string"
+  else
+    echo "Settings are current. No changes were made."
+  fi
 }
 
 list_raw_identities () {
@@ -222,7 +222,7 @@ print_current_identity () {
 }
 
 get_current_settings () {
-    git config --local --get-regexp '^(user\.|commit\.gpgsign|core.ssh[cC]ommand)' | sort -u
+  git config --local --get-regexp '^(user\.|commit\.gpgsign|core.ssh[cC]ommand)' | sort -u
 }
 
 define_identity () {
@@ -339,15 +339,15 @@ case $IDENTITY in
 
   --define-gpg)
     shift
-	  check_arguments $# 2
-	  define_gpg "$1" "$2"
-	;;
+    check_arguments $# 2
+    define_gpg "$1" "$2"
+    ;;
 
   --define-ssh)
     shift
-	  check_arguments $# 2
-	  define_ssh "$1" "$2" "$3"
-	;;
+    check_arguments $# 2
+    define_ssh "$1" "$2" "$3"
+    ;;
 
   -r|--remove)
     shift
