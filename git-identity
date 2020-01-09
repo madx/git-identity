@@ -5,27 +5,27 @@
 # shellcheck disable=SC2034
 USAGE="$(cat <<'EOF'
 [-d | --define] <identity> <name> <email> [<ssh-file>] [<gpgkeyid>]
+   or: git identity [--define-gpg] <gpgkeyid>
+   or: git identity [--define-ssh] <ssh-file> [<ssh-verbosity>]
    or: git identity [-p | --print] [<identity>]
    or: git identity [-s | --get-settings]
    or: git identity [-r | --remove] <identity>
    or: git identity [-l | --list]
    or: git identity [-R | --list-raw]
-   or: git identity [--define-gpg] <gpgkeyid>
-   or: git identity [--define-ssh] <ssh-file> [<ssh-verbosity>]
    or: git identity [-u | --update]
    or: git identity [-c | --get-shell-command] [<identity>] [<command>]
    or: git identity <identity>
 
 Specific git-identity actions:
    -d, --define            define new identity and optionally specify ssh-file and gpg key
-   -p, --print             print an indenttity or the current one
-   -s, --get-settings      get the current settings that git-identity can changes
-   -r, --remove            remove an identity
-   -l, --list              list all the identities
-   -R, --list-raw          list all identities without details
    --define-gpg            add gpg signature to the identity
    --define-ssh            add ssh key to an identity. If it does not have a path, assume '~/.ssh'
                            verbosity (0,1,2) of the ssh agent can also be specified
+   -p, --print             print an indenttity or the current one
+   -r, --remove            remove an identity
+   -s, --get-settings      get the current settings that git-identity can changes
+   -l, --list              list all the identities
+   -R, --list-raw          list all identities without details
    -u, --update            refresh the local settings with the global settings of the current identity
    -c,--get-shell-command  get GIT_SSH_COMMAND environment variable for for an identity
                            if it followed by more parameter, execute a command with it
@@ -325,12 +325,6 @@ SUBDIRECTORY_OK=1
 case $IDENTITY in
   "") print_current_identity ;;
 
-  -s|--get-settings) get_current_settings ;;
-
-  -l|--list) list_identities ;;
-
-  -R|--list-raw) list_raw_identities ;;
-
   -d|--define)
     shift
     check_arguments $# 3
@@ -349,16 +343,22 @@ case $IDENTITY in
     define_ssh "$1" "$2" "$3"
     ;;
 
+  -p|--print)
+    shift
+    print_raw_identity "$1"
+    ;;
+
+  -s|--get-settings) get_current_settings ;;
+
   -r|--remove)
     shift
     check_arguments $# 1
     remove_identity "$1"
     ;;
 
-  -p|--print)
-    shift
-    print_raw_identity "$1"
-    ;;
+  -l|--list) list_identities ;;
+
+  -R|--list-raw) list_raw_identities ;;
 
   -u|--update) update_identity "$1" ;;
 
