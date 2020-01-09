@@ -225,6 +225,7 @@ get_current_settings () {
   git config --local --get-regexp '^(user\.|commit\.gpgsign|core.ssh[cC]ommand)' | sort -u
 }
 
+# TODO: Make this interactive, at least for the code name/email
 define_identity () {
   local identity="$1"
   local name="$2"
