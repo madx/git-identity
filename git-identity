@@ -147,7 +147,7 @@ use_identity () {
     fi
   
     # Enable or disable SSH key usage
-    if [ sshCommand != "" ];
+    if [ "$sshCommand" != "" ];
     then
       git config core.sshCommand "$sshCommand"
     else 
