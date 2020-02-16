@@ -46,13 +46,14 @@ format_identity () {
 }
 
 format_raw_identity () {
-  local identity="$1"
-  local gpgkey="$(lookup "$identity" signingkey)"
-  local sshkey="$(lookup "$identity" sshkey)"
-  local sshkeyverbosity="$(lookup "$identity" sshkeyverbosity)"
+  local identity gpgkey sshkey sshkeyverbosity output
+  identity="$1"
+  gpgkey="$(lookup "$identity" signingkey)"
+  sshkey="$(lookup "$identity" sshkey)"
+  sshkeyverbosity="$(lookup "$identity" sshkeyverbosity)"
 
 
-  local output="$(lookup "$identity" name) <$(lookup "$identity" email)>"
+  output="$(lookup "$identity" name) <$(lookup "$identity" email)>"
   if [ -n "$gpgkey" ]
   then
     output="$output (GPG key: $gpgkey)"
@@ -73,9 +74,10 @@ format_raw_identity () {
 
 # TODO: This should return an array ()?
 get_ssh_command () {
-  local identity="$1"
-  local sshkey="$(lookup "$identity" sshkey)"
-  local sshkeyverbosity="$(lookup "$identity" sshkeyverbosity)"
+  local identit sshkey sshkeyverbosity
+  identity="$1"
+  sshkey="$(lookup "$identity" sshkey)"
+  sshkeyverbosity="$(lookup "$identity" sshkeyverbosity)"
 
   if [ -n "$sshkey" ];
   then
@@ -97,7 +99,8 @@ get_ssh_command () {
 }
 
 env_ssh_command () {
-  local identity="$1"
+  local identity name sshCommand
+  identity="$1"
   shift
 
   if [ "x$identity" = "x" ]; then
@@ -108,10 +111,10 @@ env_ssh_command () {
   then
     echo "You need to specify an identity or being in a repository with an identity set"
   else
-    local name="$(lookup "$identity" name)"
+    name="$(lookup "$identity" name)"
     if [ -n "$name" ];
     then
-      local sshCommand="$(get_ssh_command "$identity")"
+      sshCommand="$(get_ssh_command "$identity")"
       if [ $# == 0 ]
       then
         echo "GIT_SSH_COMMAND=\"$sshCommand\""
@@ -125,11 +128,12 @@ env_ssh_command () {
 }
 
 use_identity () {
-  local identity="$1"
-  local name="$(lookup "$identity" name)"
-  local email="$(lookup "$identity" email)"
-  local gpgkey="$(lookup "$identity" signingkey)"
-  local sshCommand="$(get_ssh_command "$identity")"
+  local identity name email gpgkey sshCommand
+  identity="$1"
+  name="$(lookup "$identity" name)"
+  email="$(lookup "$identity" email)"
+  gpgkey="$(lookup "$identity" signingkey)"
+  sshCommand="$(get_ssh_command "$identity")"
 
   if [ -n "$name" ];
   then
@@ -162,11 +166,12 @@ use_identity () {
 }
 
 update_identity () {
-  local identity="$(git config user.identity)"
-  local prev_settings=$(get_current_settings "$identity" | sed -e 's/^/  /')
+  local identity prev_settings curr_settings diff_string
+  identity="$(git config user.identity)"
+  prev_settings=$(get_current_settings "$identity" | sed -e 's/^/  /')
   use_identity "$identity"
-  local curr_settings=$(get_current_settings "$identity" | sed -e 's/^/  /')
-  local diff_string="$(diff --color=always <(echo "$prev_settings") <(echo "$curr_settings"))"
+  curr_settings=$(get_current_settings "$identity" | sed -e 's/^/  /')
+  diff_string="$(diff --color=always <(echo "$prev_settings") <(echo "$curr_settings"))"
   if [ -n "$diff_string" ];
   then
     echo "These local setting changed:"
@@ -181,7 +186,8 @@ list_raw_identities () {
 }
 
 list_identities () {
-  local identities="$(list_raw_identities)"
+  local identities
+  identities="$(list_raw_identities)"
 
   echo "Available identities:"
   for identity in $identities; do
@@ -190,7 +196,8 @@ list_identities () {
 }
 
 print_raw_identity () {
-  local identity="$1"
+  local identity name
+  identity="$1"
 
   if [ "x$identity" = "x" ]; then
     identity="$(git config user.identity)"
@@ -200,7 +207,7 @@ print_raw_identity () {
   then
     echo "You need to specify an identity or being in a repository with an identity set"
   else
-    local name="$(lookup "$identity" name)"
+    name="$(lookup "$identity" name)"
     if [ -n "$name" ];
     then
       format_raw_identity "$identity"
@@ -211,7 +218,8 @@ print_raw_identity () {
 }
 
 print_current_identity () {
-  local identity="$(git config user.identity)"
+  local identity
+  identity="$(git config user.identity)"
 
   if [ -n "$identity" ];
   then
@@ -251,24 +259,26 @@ define_identity () {
 }
 
 remove_identity () {
-  local identity="$1"
-  local formated_identity="$(format_identity "$identity")"
+  local identity formated_identity
+  identity="$1"
+  formated_identity="$(format_identity "$identity")"
 
   git config --global --remove-section identity."$identity"
   echo "Removed $formated_identity"
 }
 
 define_gpg () {
-  local identity="$1"
-  local gpgkey="$2"
-  local name="$(lookup "$identity" name)"
+  local indentity gpgkey name current_identity
+  identity="$1"
+  gpgkey="$2"
+  name="$(lookup "$identity" name)"
 
   if [ -n "$name" ];
   then
     git config --global identity."$identity".signingkey "$gpgkey"
     echo "Added GPG key $gpgkey to $(format_identity "$identity")"
 
-    local current_identity="$(git config user.identity)"
+    current_identity="$(git config user.identity)"
     if [ "$current_identity" == "$identity" ]
     then
       use_identity "$identity"
@@ -279,10 +289,11 @@ define_gpg () {
 }
 
 define_ssh () {
+  local identity sshkey sshkeyverbosity name current_identity
   local identity="$1"
   local sshkey="$2"
   local sshkeyverbosity="$3"
-  local name="$(lookup "$identity" name)"
+  name="$(lookup "$identity" name)"
 
   if [ -n "$name" ];
   then
@@ -294,7 +305,7 @@ define_ssh () {
       git config --global identity."$identity".sshkeyverbosity "$sshkeyverbosity"
     fi
 
-    local current_identity="$(git config user.identity)"
+    current_identity="$(git config user.identity)"
     if [ "$current_identity" == "$identity" ]
     then
       use_identity "$identity"
