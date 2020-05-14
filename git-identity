@@ -7,8 +7,8 @@ USAGE=`cat <<'EOF'
    or: git identity [-r | --remove] <identity>
    or: git identity [-l | --list]
    or: git identity [-R | --list-raw]
-   or: git identity [--define-gpg] <gpgkeyid>
-   or: git identity [--define-ssh] <ssh-file> [<ssh-verbosity>]
+   or: git identity [--define-gpg] <identity> <gpgkeyid>
+   or: git identity [--define-ssh] <identity> <ssh-file> [<ssh-verbosity>]
    or: git identity [-u | --update]
    or: git identity [-c | --get-shell-command] [<identity>] [<command>]
    or: git identity <identity>
