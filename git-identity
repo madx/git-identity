@@ -5,8 +5,8 @@
 # shellcheck disable=SC2034
 USAGE="$(cat <<'EOF'
 [-d | --define] <identity> <name> <email> [<ssh-file>] [<gpgkeyid>]
-   or: git identity [--define-gpg] <gpgkeyid>
-   or: git identity [--define-ssh] <ssh-file> [<ssh-verbosity>]
+   or: git identity [--define-gpg] <identity> <gpgkeyid>
+   or: git identity [--define-ssh] <identity> <ssh-file> [<ssh-verbosity>]
    or: git identity [-p | --print] [<identity>]
    or: git identity [-s | --get-settings]
    or: git identity [-r | --remove] <identity>
