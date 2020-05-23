@@ -3,16 +3,16 @@ local -a options identities
 identities=( $(git identity --list-raw) )
 options=(
 '-h:Show help'
-{-l,--list}':List all identities'
-{-R,--list-raw}':List only the names of all identities'
 {-d,--define}':Define a new identity'
 {--define-gpg}':Assign a GPG key with an identity'
-{-r,--remove}':Remove an identity'
+{--define-ssh}':Add a ssh key for the identity'
 {-p,--print}':Print an identity'
 {-s,--get-settings}':Print current local settings'
+{-r,--remove}':Remove an identity'
+{-l,--list}':List all identities'
+{-R,--list-raw}':List only the names of all identities'
 {-u,--update}':Update local settings based on the current identity'
 {-c,--get-shell-command}':Get GIT_SSH_COMMAND for an identiy or current identity'
-{--define-ssh}':Add a ssh key for the identity'
 )
 
 if (( CURRENT < 3 )); then

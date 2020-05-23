@@ -1,41 +1,42 @@
 #!/bin/bash
 
-USAGE=`cat <<'EOF'
+# TODO: Support non-stardard identity store
+
+# shellcheck disable=SC2034
+USAGE="$(cat <<'EOF'
 [-d | --define] <identity> <name> <email> [<ssh-file>] [<gpgkeyid>]
+   or: git identity [--define-gpg] <identity> <gpgkeyid>
+   or: git identity [--define-ssh] <identity> <ssh-file> [<ssh-verbosity>]
    or: git identity [-p | --print] [<identity>]
    or: git identity [-s | --get-settings]
    or: git identity [-r | --remove] <identity>
    or: git identity [-l | --list]
    or: git identity [-R | --list-raw]
-   or: git identity [--define-gpg] <identity> <gpgkeyid>
-   or: git identity [--define-ssh] <identity> <ssh-file> [<ssh-verbosity>]
    or: git identity [-u | --update]
    or: git identity [-c | --get-shell-command] [<identity>] [<command>]
    or: git identity <identity>
 
 Specific git-identity actions:
    -d, --define            define new identity and optionally specify ssh-file and gpg key
-   -p, --print             print an indenttity or the current one
-   -s, --get-settings      get the current settings that git-identity can changes
-   -r, --remove            remove an identity
-   -l, --list              list all the identities
-   -R, --list-raw          list all identities without details
    --define-gpg            add gpg signature to the identity
    --define-ssh            add ssh key to an identity. If it does not have a path, assume '~/.ssh'
                            verbosity (0,1,2) of the ssh agent can also be specified
+   -p, --print             print an indenttity or the current one
+   -r, --remove            remove an identity
+   -s, --get-settings      get the current settings that git-identity can changes
+   -l, --list              list all the identities
+   -R, --list-raw          list all identities without details
    -u, --update            refresh the local settings with the global settings of the current identity
    -c,--get-shell-command  get GIT_SSH_COMMAND environment variable for for an identity
                            if it followed by more parameter, execute a command with it
-
- 
 EOF
-`
+)"
 
 lookup () {
   local identity="$1"
   local key="$2"
 
-  git config "identity.$identity.$key"
+  git config --get "identity.$identity.$key"
 }
 
 format_identity () {
@@ -45,37 +46,40 @@ format_identity () {
 }
 
 format_raw_identity () {
-  local identity="$1"
-  local gpgkey="$(lookup $identity signingkey)"
-  local sshkey="$(lookup $identity sshkey)"
-  local sshkeyverbosity="$(lookup $identity sshkeyverbosity)"
+  local identity gpgkey sshkey sshkeyverbosity output
+  identity="$1"
+  gpgkey="$(lookup "$identity" signingkey)"
+  sshkey="$(lookup "$identity" sshkey)"
+  sshkeyverbosity="$(lookup "$identity" sshkeyverbosity)"
 
-  
-  local output="$(lookup "$identity" name) <$(lookup "$identity" email)>"
-  if [ "$gpgkey" != "" -a "$gpgkey" != " " ];
+
+  output="$(lookup "$identity" name) <$(lookup "$identity" email)>"
+  if [ -n "$gpgkey" ]
   then
     output="$output (GPG key: $gpgkey)"
   fi
 
-  if [ "$sshkey" != "" -a "$sshkey" != " " ];
+  if [ -n "$sshkey" ];
   then
     local verbosity=""
-    if [ "$sshkeyverbosity" != "" -a "$sshkeyverbosity" != " " ];
+    if [ -n "$sshkeyverbosity" ];
     then
       verbosity=" with verbosity $sshkeyverbosity"
     fi
     output="$output (SSH key: $sshkey$verbosity)"
   fi
-  
+
   echo "$output"
 }
 
+# TODO: This should return an array ()?
 get_ssh_command () {
-  local identity="$1"
-  local sshkey="$(lookup $identity sshkey)"
-  local sshkeyverbosity="$(lookup $identity sshkeyverbosity)"
+  local identit sshkey sshkeyverbosity
+  identity="$1"
+  sshkey="$(lookup "$identity" sshkey)"
+  sshkeyverbosity="$(lookup "$identity" sshkeyverbosity)"
 
-  if [ "$sshkey" != "" -a "$sshkey" != " " ];
+  if [ -n "$sshkey" ];
   then
     local verbosity=""
     case $sshkeyverbosity in
@@ -86,7 +90,7 @@ get_ssh_command () {
 
     if [[ $sshkey != '/'* ]] && [[ $sshkey != '.'* ]]
     then
-      sshkey="~/.ssh/$sshkey"
+      sshkey="$HOME/.ssh/$sshkey"
     fi
     echo "ssh $verbosity-i $sshkey"
   else
@@ -95,83 +99,86 @@ get_ssh_command () {
 }
 
 env_ssh_command () {
-  local identity="$1"
+  local identity name sshCommand
+  identity="$1"
   shift
 
   if [ "x$identity" = "x" ]; then
     identity="$(git config user.identity)"
   fi
 
-  if [ "$identity" == "" -o "$identity" == " " ]
+  if [ -z "$identity" ];
   then
     echo "You need to specify an identity or being in a repository with an identity set"
-  else 
-    local name="$(lookup "$identity" name)"
-    if [ "$name" != "" -a "$name" != " " ]
+  else
+    name="$(lookup "$identity" name)"
+    if [ -n "$name" ];
     then
-      local sshCommand="$(get_ssh_command $identity)"
+      sshCommand="$(get_ssh_command "$identity")"
       if [ $# == 0 ]
       then
         echo "GIT_SSH_COMMAND=\"$sshCommand\""
-      else 
+      else
         GIT_SSH_COMMAND="$sshCommand" "$@"
       fi
-    else 
+    else
       echo "Identity $identity does not exist. Doing nothing..."
     fi
-  fi  
+  fi
 }
 
 use_identity () {
-  local identity="$1"
-  local name="$(lookup "$identity" name)"
-  local email="$(lookup "$identity" email)"
-  local gpgkey="$(lookup "$identity" signingkey)"
-  local sshCommand="$(get_ssh_command $identity)"
+  local identity name email gpgkey sshCommand
+  identity="$1"
+  name="$(lookup "$identity" name)"
+  email="$(lookup "$identity" email)"
+  gpgkey="$(lookup "$identity" signingkey)"
+  sshCommand="$(get_ssh_command "$identity")"
 
-  if [ "$name" != "" -a "$name" != " " ]
+  if [ -n "$name" ];
   then
     echo "Using identity: $(format_identity "$identity")"
     git config user.identity "$identity"
     git config user.name "$name"
     git config user.email "$email"
-  
+
     # Enable or disable GPG key usage
-    if [ "$gpgkey" != "" -a "$gpgkey" != " " ];
+    if [ -n "$gpgkey" ];
     then
       git config user.signingkey "$gpgkey"
-	    git config commit.gpgsign true
+      git config commit.gpgsign true
     else
       git config --unset user.signingkey
       git config --unset commit.gpgsign
     fi
-  
+
     # Enable or disable SSH key usage
-    if [ "$sshCommand" != "" ];
+    if [ -n "$sshCommand" ];
     then
       git config core.sshCommand "$sshCommand"
-    else 
+    else
       git config --unset core.sshCommand
     fi
   else
     echo "Identity $identity does not exist. Doing nothing..."
-	echo "$(print_current_identity)"
+    print_current_identity
   fi
 }
 
 update_identity () {
-    local identity="$(git config user.identity)"
-    local prev_settings=$(get_current_settings "$identity" | sed -e 's/^/  /')
-    use_identity "$identity"
-    local curr_settings=$(get_current_settings "$identity" | sed -e 's/^/  /')
-    local diff_string="$(diff --color=always <(echo "$prev_settings") <(echo "$curr_settings"))"
-    if [ "$diff_string" != "" -a "$diff_string" != " " ];
-    then
-      echo "These local setting changed:"
-      echo "$diff_string"
-    else
-      echo "Settings are current. No changes were made."
-    fi
+  local identity prev_settings curr_settings diff_string
+  identity="$(git config user.identity)"
+  prev_settings=$(get_current_settings "$identity" | sed -e 's/^/  /')
+  use_identity "$identity"
+  curr_settings=$(get_current_settings "$identity" | sed -e 's/^/  /')
+  diff_string="$(diff --color=always <(echo "$prev_settings") <(echo "$curr_settings"))"
+  if [ -n "$diff_string" ];
+  then
+    echo "These local setting changed:"
+    echo "$diff_string"
+  else
+    echo "Settings are current. No changes were made."
+  fi
 }
 
 list_raw_identities () {
@@ -179,7 +186,8 @@ list_raw_identities () {
 }
 
 list_identities () {
-  local identities="$(list_raw_identities)"
+  local identities
+  identities="$(list_raw_identities)"
 
   echo "Available identities:"
   for identity in $identities; do
@@ -188,20 +196,21 @@ list_identities () {
 }
 
 print_raw_identity () {
-  local identity="$1"
+  local identity name
+  identity="$1"
 
   if [ "x$identity" = "x" ]; then
     identity="$(git config user.identity)"
   fi
 
-  if [ "$identity" == "" -o "$identity" == " " ]
+  if [ -z "$identity" ];
   then
     echo "You need to specify an identity or being in a repository with an identity set"
-  else 
-    local name="$(lookup "$identity" name)"
-    if [ "$name" != "" -a "$name" != " " ]
+  else
+    name="$(lookup "$identity" name)"
+    if [ -n "$name" ];
     then
-      echo "$(format_raw_identity "$identity")"
+      format_raw_identity "$identity"
     else
       echo "Identity $identity does not exist."
     fi
@@ -209,9 +218,10 @@ print_raw_identity () {
 }
 
 print_current_identity () {
-  local identity="$(git config user.identity)"
+  local identity
+  identity="$(git config user.identity)"
 
-  if [ "$identity" != "" -a "$identity" != " " ]
+  if [ -n "$identity" ];
   then
     echo "Current identity: $(format_identity "$identity")"
   else
@@ -220,9 +230,10 @@ print_current_identity () {
 }
 
 get_current_settings () {
-    git config --local --get-regexp '^(user\.|commit\.gpgsign|core.ssh[cC]ommand)' | sort -u
+  git config --local --get-regexp '^(user\.|commit\.gpgsign|core.ssh[cC]ommand)' | sort -u
 }
 
+# TODO: Make this interactive, at least for the code name/email
 define_identity () {
   local identity="$1"
   local name="$2"
@@ -233,14 +244,14 @@ define_identity () {
   git config --global identity."$identity".name "$name"
   git config --global identity."$identity".email "$email"
 
-  if [ "$sshkey" != "" -a "$sshkey" != " " ];
+  if [ -n "$sshkey" ];
   then
-    define_ssh $identity $sshkey
+    define_ssh "$identity" "$sshkey"
   fi
 
-  if [ "$gpgkey" != "" -a "$gpgkey" != " " ];
+  if [ -n "$gpgkey" ];
   then
-    define_gpg $identity $gpgkey
+    define_gpg "$identity" "$gpgkey"
   fi
 
   echo "Created $(format_identity "$identity")"
@@ -248,26 +259,28 @@ define_identity () {
 }
 
 remove_identity () {
-  local identity="$1"
-  local formated_identity="$(format_identity "$identity")"
+  local identity formated_identity
+  identity="$1"
+  formated_identity="$(format_identity "$identity")"
 
   git config --global --remove-section identity."$identity"
   echo "Removed $formated_identity"
 }
 
 define_gpg () {
-  local identity="$1"
-  local gpgkey="$2"
-  local name="$(lookup "$identity" name)"
-  
-  if [ "$name" != "" -a "$name" != " " ]
+  local indentity gpgkey name current_identity
+  identity="$1"
+  gpgkey="$2"
+  name="$(lookup "$identity" name)"
+
+  if [ -n "$name" ];
   then
     git config --global identity."$identity".signingkey "$gpgkey"
     echo "Added GPG key $gpgkey to $(format_identity "$identity")"
-  
-    local current_identity="$(git config user.identity)"
+
+    current_identity="$(git config user.identity)"
     if [ "$current_identity" == "$identity" ]
-    then 
+    then
       use_identity "$identity"
     fi
   else
@@ -276,24 +289,25 @@ define_gpg () {
 }
 
 define_ssh () {
+  local identity sshkey sshkeyverbosity name current_identity
   local identity="$1"
   local sshkey="$2"
   local sshkeyverbosity="$3"
-  local name="$(lookup "$identity" name)"
-  
-  if [ "$name" != "" -a "$name" != " " ]
+  name="$(lookup "$identity" name)"
+
+  if [ -n "$name" ];
   then
     git config --global identity."$identity".sshkey "$sshkey"
     echo "Added SSH key $sshkey to $(format_identity "$identity")"
 
-    if [ "$sshkeyverbosity" != "" -a "$sshkeyverbosity" != " " ]
+    if [ -n "$sshkeyverbosity" ];
     then
       git config --global identity."$identity".sshkeyverbosity "$sshkeyverbosity"
     fi
-  
-    local current_identity="$(git config user.identity)"
+
+    current_identity="$(git config user.identity)"
     if [ "$current_identity" == "$identity" ]
-    then 
+    then
       use_identity "$identity"
     fi
   else
@@ -304,7 +318,7 @@ define_ssh () {
 IDENTITY="$1"
 
 check_arguments () {
-  if [ $1 -lt $2 ]; then
+  if [ "$1" -lt "$2" ]; then
     usage
     exit 1
   fi
@@ -315,19 +329,13 @@ case $IDENTITY in
   -l|--list|-R|--list-raw|-d|--define|--define-gpg|--define-ssh|-r|--remove|-p|--print|-c|--set-shell-command)
     # To prevent git-sh-setup to error out with  'fatal: not a git repository (or any of the parent directories): .git'
     NONGIT_OK=1
-
 esac
 SUBDIRECTORY_OK=1
-. $(git --exec-path)/git-sh-setup
+# shellcheck source=/usr/lib/git-core/git-sh-setup
+. "$(git --exec-path)/git-sh-setup"
 
 case $IDENTITY in
   "") print_current_identity ;;
-
-  -s|--get-settings) get_current_settings ;;
-
-  -l|--list) list_identities ;;
-
-  -R|--list-raw) list_raw_identities ;;
 
   -d|--define)
     shift
@@ -337,20 +345,14 @@ case $IDENTITY in
 
   --define-gpg)
     shift
-	  check_arguments $# 2
-	  define_gpg "$1" "$2"
-	;;
+    check_arguments $# 2
+    define_gpg "$1" "$2"
+    ;;
 
   --define-ssh)
     shift
-	  check_arguments $# 2
-	  define_ssh "$1" "$2" "$3"
-	;;
-	
-  -r|--remove)
-    shift
-    check_arguments $# 1
-    remove_identity "$1"
+    check_arguments $# 2
+    define_ssh "$1" "$2" "$3"
     ;;
 
   -p|--print)
@@ -358,12 +360,24 @@ case $IDENTITY in
     print_raw_identity "$1"
     ;;
 
+  -s|--get-settings) get_current_settings ;;
+
+  -r|--remove)
+    shift
+    check_arguments $# 1
+    remove_identity "$1"
+    ;;
+
+  -l|--list) list_identities ;;
+
+  -R|--list-raw) list_raw_identities ;;
+
   -u|--update) update_identity "$1" ;;
 
   -c|--get-shell-command)
     shift
     env_ssh_command "$@"
     ;;
-  
+
   *) use_identity "$IDENTITY" ;;
 esac
