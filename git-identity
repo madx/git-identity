@@ -232,7 +232,7 @@ print_current_identity () {
 }
 
 get_current_settings () {
-  git config --local --get-regexp '^(user\.|commit\.gpgsign|tag\.gpgsign|core.ssh[cC]ommand)' | sort -u
+  git config --local --get-regexp '^(user\.|(commit|tag)\.gpgsign|core.ssh[cC]ommand)' | sort -u
 }
 
 # TODO: Make this interactive, at least for the code name/email
