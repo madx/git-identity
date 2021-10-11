@@ -159,7 +159,9 @@ use_identity () {
     then
       git config core.sshCommand "$sshCommand"
     else
-      git config --unset core.sshCommand
+      if git config core.sshCommand &>/dev/null; then
+        git config --unset core.sshCommand
+      fi
     fi
   else
     echo "Identity $identity does not exist. Doing nothing..."
