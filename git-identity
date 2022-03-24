@@ -160,7 +160,7 @@ use_identity () {
       git config core.sshCommand "$sshCommand"
     else
       if git config core.sshCommand &>/dev/null; then
-        git config --unset core.sshCommand
+        git config --unset core.sshCommand || true
       fi
     fi
   else
