@@ -3,20 +3,22 @@
 # TODO: Support non-stardard identity store
 
 # shellcheck disable=SC2034
-USAGE="$(cat <<'EOF'
-[-d | --define] <identity> <name> <email> [<ssh-file>] [<gpgkeyid>]
-   or: git identity [--define-gpg] <identity> <gpgkeyid>
-   or: git identity [--define-ssh] <identity> <ssh-file> [<ssh-verbosity>]
-   or: git identity [-p | --print] [<identity>]
-   or: git identity [-s | --get-settings]
-   or: git identity [-r | --remove] <identity>
-   or: git identity [-l | --list]
-   or: git identity [-R | --list-raw]
-   or: git identity [-u | --update]
-   or: git identity [-c | --get-shell-command] [<identity>] [<command>]
+USAGE="$(cat <<EOF
+git identity (-d | --define) <identity> <name> <email> [<ssh-file> [<gpgkeyid>]]
+   or: git identity (-h | --help)
+   or: git identity --define-gpg <identity> <gpgkeyid>
+   or: git identity --define-ssh <identity> <ssh-file> [<ssh-verbosity>]
+   or: git identity (-p | --print) [<identity>]
+   or: git identity (-s | --get-settings]
+   or: git identity (-r | --remove) <identity>
+   or: git identity (-l | --list)
+   or: git identity (-R | --list-raw)
+   or: git identity (-u | --update)
+   or: git identity (-c | --get-shell-command) [<identity> | (<identity> | "") <command>...]
    or: git identity <identity>
 
 Specific git-identity actions:
+   -h, --help              show this help message
    -d, --define            define new identity and optionally specify ssh-file and gpg key
    --define-gpg            add gpg signature to the identity
    --define-ssh            add ssh key to an identity. If it does not have a path, assume '~/.ssh'
@@ -323,14 +325,15 @@ IDENTITY="$1"
 
 check_arguments () {
   if [ "$1" -lt "$2" ]; then
-    usage
+    echo >&2 "ERROR: Wrong number of arguments"
+    echo "$USAGE"
     exit 1
   fi
 }
 
 # For the some commands, it is ok not being in a git folder
 case $IDENTITY in
-  -l|--list|-R|--list-raw|-d|--define|--define-gpg|--define-ssh|-r|--remove|-p|--print|-c|--set-shell-command)
+  -l|--list|-R|--list-raw|-d|--define|--define-gpg|--define-ssh|-r|--remove|-p|--print|-c|--set-shell-command|-h|--help)
     # To prevent git-sh-setup to error out with  'fatal: not a git repository (or any of the parent directories): .git'
     NONGIT_OK=1
 esac
@@ -340,6 +343,11 @@ SUBDIRECTORY_OK=1
 
 case $IDENTITY in
   "") print_current_identity ;;
+
+  -h|--help)
+    echo "$USAGE"
+    exit 0
+    ;;
 
   -d|--define)
     shift
